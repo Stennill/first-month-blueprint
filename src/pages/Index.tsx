@@ -47,14 +47,25 @@ const Index = () => {
     fetch(MANIFEST_URL)
       .then((r) => r.json())
       .then((data: any) => {
-        // Handle both old array format and new object format
+        // Normalize books -- fix price from "$14.99" string to number
+        const normalizeBooks = (books: any[]) => books.map((b: any) => ({
+          ...b,
+          price: typeof b.price === 'string' ? parseFloat(b.price.replace('$', '')) : (b.price || 14.99),
+          chapters: b.chapters || [],
+          pages: b.pages || 0,
+        }));
+
         if (Array.isArray(data)) {
-          setManifest({ allBooks: data, currentBundle: data, bundleArchive: [] });
+          const books = normalizeBooks(data);
+          setManifest({ allBooks: books, currentBundle: books, bundleArchive: [] });
         } else {
           setManifest({
-            allBooks: data.allBooks || [],
-            currentBundle: data.currentBundle || [],
-            bundleArchive: data.bundleArchive || [],
+            allBooks: normalizeBooks(data.allBooks || []),
+            currentBundle: normalizeBooks(data.currentBundle || []),
+            bundleArchive: (data.bundleArchive || []).map((bundle: any) => ({
+              ...bundle,
+              books: normalizeBooks(bundle.books || []),
+            })),
           });
         }
         setLoading(false);
