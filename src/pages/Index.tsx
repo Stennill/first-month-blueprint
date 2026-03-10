@@ -1,51 +1,20 @@
+import { useEffect, useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import SectionBox from "@/components/SectionBox";
 import EbookCard from "@/components/EbookCard";
 import DataPoint from "@/components/DataPoint";
 
-const ebooks = [
+// R2 public manifest URL -- update R2_PUBLIC_URL to your bucket's public domain
+const MANIFEST_URL = "hhttps://pub-d9c8315d945c4153b2ee060dc744aec7.r2.dev";
+
+const fallbackEbooks = [
   {
     id: "BP-001",
-    title: "Freelance Revenue Engine",
-    subtitle: "Service-based income from zero",
-    price: "$19",
-    pages: 87,
-    chapters: [
-      "Market Selection Protocol",
-      "Pricing Architecture",
-      "Client Acquisition Pipeline",
-      "Delivery & Retention Systems",
-      "Scaling to $1K MRR",
-    ],
-  },
-  {
-    id: "BP-002",
-    title: "Digital Product Factory",
-    subtitle: "Build once, sell infinitely",
-    price: "$24",
-    pages: 112,
-    chapters: [
-      "Product-Market Fit Analysis",
-      "MVP Construction Framework",
-      "Launch Sequence Checklist",
-      "Automated Sales Infrastructure",
-      "Revenue Optimization Loops",
-      "Post-Launch Growth Protocol",
-    ],
-  },
-  {
-    id: "BP-003",
-    title: "Content Monetization Grid",
-    subtitle: "Audience to income conversion",
-    price: "$19",
-    pages: 94,
-    chapters: [
-      "Platform Selection Matrix",
-      "Content Production Systems",
-      "Audience Growth Mechanics",
-      "Monetization Architecture",
-      "Analytics & Iteration",
-    ],
+    title: "Loading...",
+    subtitle: "Fetching latest blueprints",
+    price: "$14.99",
+    pages: 0,
+    chapters: [],
   },
 ];
 
@@ -57,6 +26,32 @@ const dataPoints = [
 ];
 
 const Index = () => {
+  const [ebooks, setEbooks] = useState(fallbackEbooks);
+  const [totalPages, setTotalPages] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(MANIFEST_URL)
+      .then((r) => r.json())
+      .then((books) => {
+        if (books && books.length > 0) {
+          setEbooks(books);
+          setTotalPages(books.reduce((sum: number, b: any) => sum + (b.pages || 0), 0));
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        // Manifest not available yet -- keep fallback
+        setLoading(false);
+      });
+  }, []);
+
+  const bundlePrice = 49;
+  const individualTotal = ebooks.reduce((sum, b) => {
+    const p = parseFloat(String(b.price).replace("$", "")) || 0;
+    return sum + p;
+  }, 0);
+
   return (
     <div className="min-h-screen bg-background blueprint-grid">
       <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr]">
@@ -100,11 +95,15 @@ const Index = () => {
               <p className="font-mono text-xs text-muted-foreground mb-6 mt-2">
                 Hover to x-ray contents. Each unit is a standalone operating system.
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-0 border border-border">
-                {ebooks.map((book) => (
-                  <EbookCard key={book.id} {...book} />
-                ))}
-              </div>
+              {loading ? (
+                <p className="font-mono text-xs text-muted-foreground">Loading blueprints...</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-0 border border-border">
+                  {ebooks.map((book) => (
+                    <EbookCard key={book.id} {...book} />
+                  ))}
+                </div>
+              )}
             </SectionBox>
           </section>
 
@@ -127,11 +126,11 @@ const Index = () => {
             <SectionBox label="SEC. 04 // SPECIFICATIONS" className="border-0">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border border-border">
                 {[
-                  { label: "Format", value: "PDF + Notion" },
-                  { label: "Total Pages", value: "293" },
-                  { label: "Frameworks", value: "14" },
-                  { label: "Checklists", value: "27" },
-                  { label: "Templates", value: "12" },
+                  { label: "Format", value: "PDF" },
+                  { label: "Total Pages", value: totalPages > 0 ? String(totalPages) : "—" },
+                  { label: "Blueprints", value: String(ebooks.length) },
+                  { label: "Chapters", value: String(ebooks.reduce((s, b) => s + (b.chapters?.length || 0), 0)) },
+                  { label: "Niches", value: String(new Set(ebooks.map((b: any) => b.niche)).size || ebooks.length) },
                   { label: "Updates", value: "Lifetime" },
                 ].map((spec, i) => (
                   <div key={i} className="border border-border p-5">
@@ -151,9 +150,11 @@ const Index = () => {
                   Full Series Bundle
                 </h2>
                 <div className="flex items-baseline gap-3 mt-4">
-                  <span className="font-heading text-5xl font-bold text-primary">$49</span>
-                  <span className="font-mono text-xs text-muted-foreground line-through">$62</span>
-                  <span className="font-mono text-[10px] text-muted-foreground tracking-wider uppercase">// All 3 blueprints</span>
+                  <span className="font-heading text-5xl font-bold text-primary">${bundlePrice}</span>
+                  {individualTotal > 0 && (
+                    <span className="font-mono text-xs text-muted-foreground line-through">${individualTotal.toFixed(0)}</span>
+                  )}
+                  <span className="font-mono text-[10px] text-muted-foreground tracking-wider uppercase">// All {ebooks.length} blueprints</span>
                 </div>
                 <p className="font-mono text-xs text-muted-foreground mt-4 leading-relaxed">
                   Immediate access. No subscriptions. No upsells. Download the operating manuals and execute.
@@ -162,7 +163,7 @@ const Index = () => {
                   Acquire Blueprint Series →
                 </button>
                 <p className="font-mono text-[10px] text-muted-foreground mt-3 text-center">
-                  Secure checkout // Instant delivery // PDF + Notion
+                  Secure checkout // Instant delivery // PDF
                 </p>
               </div>
             </SectionBox>
