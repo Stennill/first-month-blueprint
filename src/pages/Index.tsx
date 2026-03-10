@@ -46,7 +46,19 @@ const Index = () => {
   useEffect(() => {
     fetch(MANIFEST_URL)
       .then((r) => r.json())
-      .then((data: Manifest) => { setManifest(data); setLoading(false); })
+      .then((data: any) => {
+        // Handle both old array format and new object format
+        if (Array.isArray(data)) {
+          setManifest({ allBooks: data, currentBundle: data, bundleArchive: [] });
+        } else {
+          setManifest({
+            allBooks: data.allBooks || [],
+            currentBundle: data.currentBundle || [],
+            bundleArchive: data.bundleArchive || [],
+          });
+        }
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   }, []);
 
