@@ -5,7 +5,7 @@ import EbookCard from "@/components/EbookCard";
 import DataPoint from "@/components/DataPoint";
 
 // ── Update this to your R2 public bucket URL ──────────────────────
-const MANIFEST_URL = "https://pub-YOUR_R2_PUBLIC_ID.r2.dev/manifest.json";
+const MANIFEST_URL = "https://pub-d9c8315d945c4153b2ee060dc744aec7.r2.dev";
 
 const dataPoints = [
   { subject: "SUBJECT 012", implementation: "3 DAYS", firstRevenue: "DAY 8",  roi: "380%" },
